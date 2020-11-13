@@ -1,17 +1,18 @@
 #!/usr/bin/python3
 
 import discord
-from discord.ext import commands
+import discord.ext.commands
 
-VERSION = '0.1a'
+from sqlite import SQLite
+
 PREFIX = '.'
 
-# over engineered reading of a single token
-token = None
-with open('token', 'r') as token_file:
-	token = token_file.read()
+TOKEN = None
+with open('token', 'r') as f:
+	TOKEN = f.read()
 
-bot = commands.Bot(command_prefix = PREFIX, activity = discord.Game(name = 'beep boop version ' + VERSION), help_command = None)
+activity = discord.Game(name = 'version alpha')
+bot = discord.ext.commands.Bot(command_prefix = PREFIX, activity = activity, help_command = None)
 
 @bot.event
 async def on_connect():
@@ -19,7 +20,16 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
-	print('Bot ready, version ' + VERSION)
-	bot.load_extension('test')
+	bot.load_extension('commands')
+	SQLite()
 
-bot.run(token)
+	print('Bot ready')
+
+@bot.command()
+async def reload(context, module):
+	bot.reload_extension(module)
+
+	await context.channel.send('reloaded ' + module)
+	await context.message.delete()
+
+bot.run(TOKEN)
